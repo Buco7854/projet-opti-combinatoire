@@ -1,0 +1,93 @@
+[
+  {
+    "instance_name": "small_10",
+    "num_customers": 10,
+    "aco_best": 562.635734701947,
+    "aco_avg": 562.635734701947,
+    "aco_std": 0.0,
+    "aco_time": 0.1374967098236084,
+    "hybrid_best": 562.635734701947,
+    "hybrid_avg": 562.635734701947,
+    "hybrid_std": 0.0,
+    "hybrid_time": 0.17493219375610353,
+    "improvement_pct": 0.0
+  },
+  {
+    "instance_name": "small_15",
+    "num_customers": 15,
+    "aco_best": 478.5300388871175,
+    "aco_avg": 481.46899450166137,
+    "aco_std": 1.46947780727196,
+    "aco_time": 0.2685767650604248,
+    "hybrid_best": 478.5300388871175,
+    "hybrid_avg": 480.3536667755122,
+    "hybrid_std": 1.6431388528141275,
+    "hybrid_time": 0.34179010391235354,
+    "improvement_pct": 0.23165099702912245
+  },
+  {
+    "instance_name": "medium_20",
+    "num_customers": 20,
+    "aco_best": 498.244095717635,
+    "aco_avg": 501.3192350966001,
+    "aco_std": 5.470629476599372,
+    "aco_time": 0.4633942604064941,
+    "hybrid_best": 498.244095717635,
+    "hybrid_avg": 504.07198263819737,
+    "hybrid_std": 7.137674617008875,
+    "hybrid_time": 0.5876918792724609,
+    "improvement_pct": -0.5491007224302576
+  },
+  {
+    "instance_name": "medium_25",
+    "num_customers": 25,
+    "aco_best": 771.1173314791728,
+    "aco_avg": 781.0357298125401,
+    "aco_std": 10.196890235558547,
+    "aco_time": 0.6401235580444335,
+    "hybrid_best": 770.1642841585303,
+    "hybrid_avg": 772.8193303234702,
+    "hybrid_std": 3.5543553138130286,
+    "hybrid_time": 0.7968067646026611,
+    "improvement_pct": 1.0519876588798236
+  },
+  {
+    "instance_name": "medium_30",
+    "num_customers": 30,
+    "aco_best": 732.0704311782781,
+    "aco_avg": 741.1332315552952,
+    "aco_std": 8.971143974147257,
+    "aco_time": 0.9142029762268067,
+    "hybrid_best": 722.745067060765,
+    "hybrid_avg": 733.7631377377476,
+    "hybrid_std": 5.883819291356762,
+    "hybrid_time": 1.1767128944396972,
+    "improvement_pct": 0.9944357510566912
+  },
+  {
+    "instance_name": "large_40",
+    "num_customers": 40,
+    "aco_best": 827.5705602147939,
+    "aco_avg": 858.8350868702297,
+    "aco_std": 17.945569566819632,
+    "aco_time": 1.5094805717468263,
+    "hybrid_best": 816.9493737034676,
+    "hybrid_avg": 828.8555875592887,
+    "hybrid_std": 12.22158413189421,
+    "hybrid_time": 1.8759473323822022,
+    "improvement_pct": 3.490716642725025
+  },
+  {
+    "instance_name": "large_50",
+    "num_customers": 50,
+    "aco_best": 921.1403412645996,
+    "aco_avg": 932.9916759166438,
+    "aco_std": 8.714151177731988,
+    "aco_time": 2.2720757484436036,
+    "hybrid_best": 889.5472376140389,
+    "hybrid_avg": 920.1634677048281,
+    "hybrid_std": 25.747210874915716,
+    "hybrid_time": 2.81706862449646,
+    "improvement_pct": 1.3749541976580035
+  }
+]

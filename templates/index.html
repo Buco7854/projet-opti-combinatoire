@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVRP - ACO + Q-Learning</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid #334155;
+            padding: 1.5rem 2rem;
+            text-align: center;
+        }
+        .header h1 { font-size: 1.8rem; color: #38bdf8; }
+        .header p { color: #94a3b8; margin-top: 0.3rem; font-size: 0.95rem; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        .controls {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: end;
+            border: 1px solid #334155;
+        }
+        .control-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .control-group label { font-size: 0.85rem; color: #94a3b8; }
+        .control-group input, .control-group select {
+            background: #0f172a;
+            border: 1px solid #475569;
+            color: #e2e8f0;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            width: 120px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            color: white;
+            border: none;
+            padding: 0.6rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(14,165,233,0.4); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 1.2rem;
+            border: 1px solid #334155;
+        }
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card h3 .badge {
+            font-size: 0.75rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .badge-aco { background: #7c3aed; }
+        .badge-hybrid { background: #059669; }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #334155;
+            font-size: 0.9rem;
+        }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-value { color: #38bdf8; font-weight: 600; }
+        .improvement {
+            text-align: center;
+            padding: 1rem;
+            background: linear-gradient(135deg, #064e3b, #065f46);
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: 1px solid #10b981;
+            display: none;
+        }
+        canvas {
+            width: 100% !important;
+            height: 300px !important;
+            background: #0f172a;
+            border-radius: 8px;
+        }
+        .full-width { grid-column: 1 / -1; }
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.1rem;
+            color: #94a3b8;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #334155;
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .route-colors {
+            display: flex; flex-wrap: wrap; gap: 0.5rem;
+            margin-top: 0.5rem; font-size: 0.8rem;
+        }
+        .route-tag {
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        @media (max-width: 900px) {
+            .results-grid { grid-template-columns: 1fr; }
+            .controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CVRP : ACO + Q-Learning</h1>
+        <p>Optimisation par Colonies de Fourmis améliorée par Apprentissage par Renforcement</p>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <label>Clients</label>
+                <input type="number" id="numCustomers" value="20" min="5" max="80">
+            </div>
+            <div class="control-group">
+                <label>Capacité véhicule</label>
+                <input type="number" id="capacity" value="80" min="20" max="300">
+            </div>
+            <div class="control-group">
+                <label>Fourmis</label>
+                <input type="number" id="numAnts" value="20" min="5" max="50">
+            </div>
+            <div class="control-group">
+                <label>Itérations</label>
+                <input type="number" id="maxIter" value="80" min="20" max="500">
+            </div>
+            <div class="control-group">
+                <label>Seed</label>
+                <input type="number" id="seed" value="42" min="0">
+            </div>
+            <button class="btn" id="solveBtn" onclick="solve()">Lancer la résolution</button>
+        </div>
+
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            Résolution en cours... Veuillez patienter.
+        </div>
+
+        <div class="improvement" id="improvement"></div>
+
+        <div class="results-grid" id="results" style="display:none;">
+            <div class="card">
+                <h3><span class="badge badge-aco">ACO</span> Routes ACO classique</h3>
+                <canvas id="canvasACO"></canvas>
+                <div id="statsACO"></div>
+                <div class="route-colors" id="routeColorsACO"></div>
+            </div>
+            <div class="card">
+                <h3><span class="badge badge-hybrid">Hybride</span> Routes ACO + Q-Learning</h3>
+                <canvas id="canvasHybrid"></canvas>
+                <div id="statsHybrid"></div>
+                <div class="route-colors" id="routeColorsHybrid"></div>
+            </div>
+            <div class="card">
+                <h3>Convergence (meilleur coût)</h3>
+                <canvas id="canvasConvergence"></canvas>
+            </div>
+            <div class="card">
+                <h3>Paramètres ACO ajustés par Q-Learning</h3>
+                <canvas id="canvasParams"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+    const ROUTE_COLORS = [
+        '#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6',
+        '#ec4899','#14b8a6','#f97316','#6366f1','#84cc16',
+        '#06b6d4','#e11d48','#a855f7','#22c55e','#eab308'
+    ];
+
+    let convergenceChart = null;
+    let paramsChart = null;
+
+    function solve() {
+        const btn = document.getElementById('solveBtn');
+        const loader = document.getElementById('loader');
+        const results = document.getElementById('results');
+        const impDiv = document.getElementById('improvement');
+
+        btn.disabled = true;
+        loader.style.display = 'block';
+        results.style.display = 'none';
+        impDiv.style.display = 'none';
+
+        const body = {
+            num_customers: +document.getElementById('numCustomers').value,
+            capacity: +document.getElementById('capacity').value,
+            num_ants: +document.getElementById('numAnts').value,
+            max_iterations: +document.getElementById('maxIter').value,
+            seed: +document.getElementById('seed').value
+        };
+
+        fetch('/api/solve', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        })
+        .then(r => r.json())
+        .then(data => {
+            loader.style.display = 'none';
+            results.style.display = 'grid';
+            btn.disabled = false;
+            renderResults(data);
+        })
+        .catch(err => {
+            loader.style.display = 'none';
+            btn.disabled = false;
+            alert('Erreur : ' + err.message);
+        });
+    }
+
+    function renderResults(data) {
+        // Improvement banner
+        const impDiv = document.getElementById('improvement');
+        const imp = data.improvement_pct;
+        impDiv.style.display = 'block';
+        if (imp > 0) {
+            impDiv.style.background = 'linear-gradient(135deg, #064e3b, #065f46)';
+            impDiv.style.borderColor = '#10b981';
+            impDiv.innerHTML = `L'hybride ACO+QL améliore le coût de <strong>${imp.toFixed(2)}%</strong> par rapport à l'ACO classique`;
+        } else {
+            impDiv.style.background = 'linear-gradient(135deg, #7f1d1d, #991b1b)';
+            impDiv.style.borderColor = '#ef4444';
+            impDiv.innerHTML = `L'ACO classique est meilleur de <strong>${(-imp).toFixed(2)}%</strong> sur cette instance`;
+        }
+
+        // Draw routes
+        drawRoutes('canvasACO', data.instance, data.aco.routes, 'statsACO', data.aco, 'routeColorsACO');
+        drawRoutes('canvasHybrid', data.instance, data.hybrid.routes, 'statsHybrid', data.hybrid, 'routeColorsHybrid');
+
+        // Convergence chart
+        drawConvergence(data.aco.history, data.hybrid.history);
+
+        // Params chart
+        if (data.hybrid.param_history && data.hybrid.param_history.length > 0) {
+            drawParams(data.hybrid.param_history);
+        }
+    }
+
+    function drawRoutes(canvasId, instance, routes, statsId, solData, colorsId) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth * 2;
+        canvas.height = 600;
+        ctx.scale(2, 2);
+        const W = canvas.offsetWidth;
+        const H = 300;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, W, H);
+
+        const pad = 30;
+        const allX = [instance.depot[0], ...instance.customers.map(c => c[0])];
+        const allY = [instance.depot[1], ...instance.customers.map(c => c[1])];
+        const minX = Math.min(...allX), maxX = Math.max(...allX);
+        const minY = Math.min(...allY), maxY = Math.max(...allY);
+        const rangeX = maxX - minX || 1, rangeY = maxY - minY || 1;
+
+        function tx(x) { return pad + (x - minX) / rangeX * (W - 2*pad); }
+        function ty(y) { return H - pad - (y - minY) / rangeY * (H - 2*pad); }
+
+        // Draw routes
+        routes.forEach((route, ri) => {
+            const color = ROUTE_COLORS[ri % ROUTE_COLORS.length];
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            const pts = route.points;
+            ctx.moveTo(tx(pts[0][0]), ty(pts[0][1]));
+            for (let i = 1; i < pts.length; i++) {
+                ctx.lineTo(tx(pts[i][0]), ty(pts[i][1]));
+            }
+            ctx.stroke();
+        });
+
+        // Draw customers
+        instance.customers.forEach((c, i) => {
+            ctx.fillStyle = '#94a3b8';
+            ctx.beginPath();
+            ctx.arc(tx(c[0]), ty(c[1]), 4, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = '8px sans-serif';
+            ctx.fillText(i+1, tx(c[0])+5, ty(c[1])-5);
+        });
+
+        // Draw depot
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(tx(instance.depot[0]), ty(instance.depot[1]), 7, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.fillText('D', tx(instance.depot[0])-4, ty(instance.depot[1])+3);
+
+        // Stats
+        const statsDiv = document.getElementById(statsId);
+        statsDiv.innerHTML = `
+            <div class="stat-row"><span>Coût total</span><span class="stat-value">${solData.cost.toFixed(2)}</span></div>
+            <div class="stat-row"><span>Nombre de routes</span><span class="stat-value">${solData.num_routes}</span></div>
+            <div class="stat-row"><span>Temps</span><span class="stat-value">${solData.time.toFixed(3)}s</span></div>
+        `;
+
+        // Route legend
+        const colorsDiv = document.getElementById(colorsId);
+        colorsDiv.innerHTML = routes.map((r, i) =>
+            `<span class="route-tag" style="background:${ROUTE_COLORS[i % ROUTE_COLORS.length]}20;color:${ROUTE_COLORS[i % ROUTE_COLORS.length]};border:1px solid ${ROUTE_COLORS[i % ROUTE_COLORS.length]}40">
+                Route ${i+1}: ${r.customers.length} clients, charge ${r.load}
+            </span>`
+        ).join('');
+    }
+
+    function drawConvergence(acoHist, hybridHist) {
+        const ctx = document.getElementById('canvasConvergence').getContext('2d');
+        if (convergenceChart) convergenceChart.destroy();
+
+        convergenceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: acoHist.map(h => h.iteration),
+                datasets: [
+                    {
+                        label: 'ACO classique',
+                        data: acoHist.map(h => h.best_cost),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: '#8b5cf620',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: true
+                    },
+                    {
+                        label: 'ACO + Q-Learning',
+                        data: hybridHist.map(h => h.best_cost),
+                        borderColor: '#10b981',
+                        backgroundColor: '#10b98120',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#94a3b8' } }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Itération', color: '#94a3b8' },
+                        ticks: { color: '#64748b' },
+                        grid: { color: '#1e293b' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Meilleur coût', color: '#94a3b8' },
+                        ticks: { color: '#64748b' },
+                        grid: { color: '#1e293b' }
+                    }
+                }
+            }
+        });
+    }
+
+    function drawParams(paramHist) {
+        const ctx = document.getElementById('canvasParams').getContext('2d');
+        if (paramsChart) paramsChart.destroy();
+
+        paramsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: paramHist.map(h => h.iteration),
+                datasets: [
+                    {
+                        label: 'Alpha (phéromones)',
+                        data: paramHist.map(h => h.alpha),
+                        borderColor: '#f59e0b',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Beta (heuristique)',
+                        data: paramHist.map(h => h.beta),
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Rho (évaporation)',
+                        data: paramHist.map(h => h.rho),
+                        borderColor: '#ef4444',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        yAxisID: 'y2'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#94a3b8' } }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Itération', color: '#94a3b8' },
+                        ticks: { color: '#64748b' },
+                        grid: { color: '#1e293b' }
+                    },
+                    y: {
+                        position: 'left',
+                        title: { display: true, text: 'Alpha / Beta', color: '#94a3b8' },
+                        ticks: { color: '#64748b' },
+                        grid: { color: '#1e293b' }
+                    },
+                    y2: {
+                        position: 'right',
+                        title: { display: true, text: 'Rho', color: '#94a3b8' },
+                        ticks: { color: '#64748b' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+    </script>
+</body>
+</html>
