@@ -215,7 +215,7 @@ Nous avons choisi $\beta > \alpha$ pour que l'heuristique de distance ait plus d
 
 \subsection{Pourquoi le Q-Learning ?}
 
-L'idée d'utiliser l'apprentissage par renforcement pour piloter une métaheuristique n'est pas nouvelle. Le survey de Yang et al. (\textit{Advancements in Q-learning meta-heuristic optimization algorithms: A survey}, WIREs Data Mining and Knowledge Discovery, 2024 --- disponible sur \url{https://wires.onlinelibrary.wiley.com/doi/full/10.1002/widm.1548}) recense 20 ans de travaux combinant Q-Learning et métaheuristiques, notamment pour l'adaptation de paramètres et la sélection d'opérateurs. C'est ce courant de recherche qui a inspiré notre approche.
+En cherchant comment améliorer notre ACO, nous sommes tombés sur le survey de Yang et al. (\textit{Advancements in Q-learning meta-heuristic optimization algorithms: A survey}, WIREs Data Mining and Knowledge Discovery, 2024 --- \url{https://wires.onlinelibrary.wiley.com/doi/full/10.1002/widm.1548}) qui recense 20 ans de travaux combinant Q-Learning et métaheuristiques. On y retrouve notamment des approches d'adaptation de paramètres et de sélection d'opérateurs, ce qui correspond exactement à notre problème. C'est cette lecture qui nous a orientés vers le Q-Learning.
 
 Nous avons choisi le Q-Learning pour plusieurs raisons. D'abord, il s'agit d'un algorithme d'apprentissage par renforcement relativement simple à comprendre et à implémenter. Ensuite, notre problème d'ajustement de paramètres se formule naturellement comme un problème de décision séquentielle : à chaque itération, on observe l'état de la recherche et on décide quelle stratégie adopter.
 
