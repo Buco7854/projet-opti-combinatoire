@@ -215,7 +215,15 @@ Nous avons choisi $\beta > \alpha$ pour que l'heuristique de distance ait plus d
 
 \subsection{Pourquoi le Q-Learning ?}
 
-Combiner du Q-Learning avec une métaheuristique est une idée que nous avions dès le départ du projet. En faisant nos recherches, nous avons trouvé le survey de Yang et al. (\textit{Advancements in Q-learning meta-heuristic optimization algorithms: A survey}, WIREs Data Mining and Knowledge Discovery, 2024 --- \url{https://wires.onlinelibrary.wiley.com/doi/full/10.1002/widm.1548}) qui confirme que cette combinaison est étudiée depuis une vingtaine d'années, notamment pour l'adaptation de paramètres et la sélection d'opérateurs. Cela nous a confortés dans notre choix.
+Combiner du Q-Learning avec une métaheuristique est une idée que nous avions dès le départ du projet. En faisant nos recherches, nous avons trouvé le survey de Yang et al. (\textit{Advancements in Q-learning meta-heuristic optimization algorithms: A survey}, WIREs Data Mining and Knowledge Discovery, 2024 --- \url{https://wires.onlinelibrary.wiley.com/doi/full/10.1002/widm.1548}) qui recense une vingtaine d'années de travaux sur le sujet. Ce survey nous a servi de base pour comprendre comment structurer notre approche. On y retrouve les éléments clés que nous avons repris et adaptés à notre contexte :
+
+\begin{itemize}
+    \item \textbf{Adaptation de paramètres} (section 5.6 du survey) : le Q-Learning est utilisé pour ajuster dynamiquement les paramètres d'un algorithme évolutionnaire pendant la résolution, par exemple en sélectionnant parmi des combinaisons de paramètres prédéfinies. C'est exactement ce que nous faisons avec nos 6 stratégies.
+    \item \textbf{Conception des états} (section 6.1) : les états sont définis à partir de la performance de la population et de la détection de stagnation. Nous avons repris cette idée en caractérisant l'état par le taux d'amélioration, la diversité et la phase de recherche.
+    \item \textbf{Conception des récompenses} (section 6.2) : les récompenses sont basées sur la différence de fitness entre deux générations, avec des pénalités en cas de stagnation. Notre fonction de récompense suit ce même principe.
+    \item \textbf{Sélection d'opérateurs et recherche locale} (sections 5.4 et 5.4.3) : le Q-Learning peut décider quand déclencher une recherche locale plutôt que de l'appliquer systématiquement. C'est ce que nous faisons avec notre stratégie \texttt{local\_search}.
+    \item \textbf{Politique $\varepsilon$-greedy} (section 5.4.1) : le survey mentionne l'utilisation du mécanisme $\varepsilon$-greedy pour équilibrer exploration et exploitation dans la sélection d'actions, ce que nous appliquons avec un $\varepsilon$ décroissant.
+\end{itemize}
 
 Nous avons choisi le Q-Learning pour plusieurs raisons. D'abord, il s'agit d'un algorithme d'apprentissage par renforcement relativement simple à comprendre et à implémenter. Ensuite, notre problème d'ajustement de paramètres se formule naturellement comme un problème de décision séquentielle : à chaque itération, on observe l'état de la recherche et on décide quelle stratégie adopter.
 
