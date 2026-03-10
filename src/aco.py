@@ -30,7 +30,7 @@ class ACOParams:
     Q: float = 100.0         # facteur de dépôt
     tau_min: float = 0.1     # phéromone minimale
     tau_max: float = 10.0    # phéromone maximale
-    max_iterations: int = 100
+    max_iterations: int = 150
 
 
 class ACOSolver:
