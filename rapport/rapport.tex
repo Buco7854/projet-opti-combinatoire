@@ -186,7 +186,7 @@ Itérations max & 150 & Critère d'arrêt \\
 \end{tabular}
 \end{table}
 
-Nous avons choisi $\beta > \alpha$ pour que l'heuristique de distance ait plus d'influence que les phéromones au début, lorsque celles-ci ne contiennent pas encore beaucoup d'information. Le taux d'évaporation de 0.1 est un compromis classique entre exploration et exploitation, conforme aux recommandations de la littérature \cite{dorigo1997}.
+Nous avons choisi $\beta > \alpha$ pour que l'heuristique de distance ait plus d'influence que les phéromones au début, lorsque celles-ci ne contiennent pas encore beaucoup d'information. Le taux d'évaporation de 0.1 est un compromis classique entre exploration et exploitation, conforme aux recommandations classiques de l'ACO.
 
 \subsection{Pseudocode}
 
@@ -266,7 +266,7 @@ Plutôt que de faire varier les paramètres un par un (augmenter $\alpha$ de 0.1
 \end{tabular}
 \end{table}
 
-Les valeurs numériques de chaque profil s'appuient sur les plages de paramètres recommandées dans la littérature ACO \cite{dorigo1997, stutzle2000}. Par exemple, pour la stratégie \texttt{exploitation}, un $\alpha$ élevé (2.0) et un $\rho$ faible (0.05) favorisent le suivi des phéromones établies, tandis que pour \texttt{diversify}, un $\alpha$ faible (0.3) combiné à un $\rho$ élevé (0.30) permet d'effacer rapidement les phéromones et de relancer l'exploration. Le paramètre $\beta$ est ajusté en conséquence : une valeur élevée (4.0--5.0) privilégie l'heuristique de proximité lorsque les phéromones sont peu fiables, tandis qu'une valeur plus faible (2.0--2.5) laisse davantage de place aux phéromones.
+Les valeurs numériques de chaque profil s'appuient sur les plages de paramètres classiquement recommandées pour l'ACO. Par exemple, pour la stratégie \texttt{exploitation}, un $\alpha$ élevé (2.0) et un $\rho$ faible (0.05) favorisent le suivi des phéromones établies, tandis que pour \texttt{diversify}, un $\alpha$ faible (0.3) combiné à un $\rho$ élevé (0.30) permet d'effacer rapidement les phéromones et de relancer l'exploration. Le paramètre $\beta$ est ajusté en conséquence : une valeur élevée (4.0--5.0) privilégie l'heuristique de proximité lorsque les phéromones sont peu fiables, tandis qu'une valeur plus faible (2.0--2.5) laisse davantage de place aux phéromones.
 
 L'idée derrière ces stratégies est intuitive. Lorsque la recherche stagne et que les solutions convergent trop, il vaut mieux diversifier ou explorer. Lorsque l'on se trouve dans une bonne zone de l'espace de recherche, on souhaite intensifier. Et lorsque les solutions sont de bonne qualité, le 2-opt peut les améliorer localement.
 
@@ -500,46 +500,5 @@ En revanche, sur les petites instances, le Q-Learning n'apporte pas de gain sign
 
 Ce projet nous a permis d'observer concrètement comment le machine learning peut interagir avec une métaheuristique. Il s'agit d'un domaine de recherche actif, et nous pensons qu'avec des techniques plus avancées (deep RL, transfert d'apprentissage) et une validation sur des benchmarks standards, il serait possible d'aller plus loin. Même avec notre approche relativement simple, les résultats sont encourageants.
 
-% =====================================================
-% Références
-% =====================================================
-\begin{thebibliography}{9}
-
-\bibitem{dorigo1997}
-M. Dorigo et L.M. Gambardella,
-\textit{Ant colony system: a cooperative learning approach to the traveling salesman problem},
-IEEE Transactions on Evolutionary Computation, vol. 1, no. 1, pp. 53--66, 1997.
-
-\bibitem{watkins1992}
-C.J.C.H. Watkins et P. Dayan,
-\textit{Technical Note: Q-Learning},
-Machine Learning, vol. 8, no. 3--4, pp. 279--292, 1992.
-
-\bibitem{toth2002}
-P. Toth et D. Vigo,
-\textit{The Vehicle Routing Problem},
-SIAM Monographs on Discrete Mathematics and Applications, 2002.
-
-\bibitem{stutzle2000}
-T. Stützle et H.H. Hoos,
-\textit{MAX--MIN Ant System},
-Future Generation Computer Systems, vol. 16, no. 9, pp. 889--914, 2000.
-
-\bibitem{sutton2018}
-R.S. Sutton et A.G. Barto,
-\textit{Reinforcement Learning: An Introduction},
-MIT Press, 2e édition, 2018.
-
-\bibitem{skinderowicz2022}
-R. Skinderowicz,
-\textit{Improving Ant Colony Optimization efficiency for solving large TSP instances},
-Applied Soft Computing, vol. 120, 2022.
-
-\bibitem{bell2004}
-J.E. Bell et P.R. McMullen,
-\textit{Ant colony optimization techniques for the vehicle routing problem},
-Advanced Engineering Informatics, vol. 18, pp. 41--48, 2004.
-
-\end{thebibliography}
 
 \end{document}
