@@ -56,7 +56,7 @@
 \maketitle
 
 \begin{abstract}
-Dans ce rapport, on présente notre travail sur la résolution du problème de tournées de véhicules avec contraintes de capacité (CVRP). On a choisi d'implémenter une approche par colonies de fourmis (ACO), puis de l'améliorer en utilisant du Q-Learning pour ajuster automatiquement les paramètres de l'algorithme pendant la recherche. L'idée de base, c'est que plutôt que de fixer les paramètres de l'ACO une fois pour toutes, on laisse un agent d'apprentissage par renforcement apprendre quelle stratégie adopter selon l'état de la recherche. On compare les deux approches sur plusieurs instances de tailles différentes, et on discute de ce que le machine learning apporte vraiment dans ce contexte.
+Dans ce rapport, nous présentons notre travail sur la résolution du problème de tournées de véhicules avec contraintes de capacité (CVRP). Nous avons choisi d'implémenter une approche par colonies de fourmis (ACO), puis de l'améliorer en utilisant du Q-Learning pour ajuster automatiquement les paramètres de l'algorithme pendant la recherche. L'idée principale est que, plutôt que de fixer les paramètres de l'ACO une fois pour toutes, nous laissons un agent d'apprentissage par renforcement apprendre quelle stratégie adopter selon l'état de la recherche. Nous comparons les deux approches sur plusieurs instances de tailles différentes, et nous discutons de ce que le machine learning apporte réellement dans ce contexte.
 \end{abstract}
 
 \tableofcontents
@@ -66,15 +66,15 @@ Dans ce rapport, on présente notre travail sur la résolution du problème de t
 \section{Introduction}
 % =====================================================
 
-Les problèmes d'optimisation combinatoire sont partout dans le monde réel : logistique, planification, allocation de ressources, etc. Parmi eux, le problème de tournées de véhicules (VRP) est un classique, et sa variante avec capacités (CVRP) est celle qu'on rencontre le plus souvent en pratique.
+Les problèmes d'optimisation combinatoire sont omniprésents dans le monde réel : logistique, planification, allocation de ressources, etc. Parmi eux, le problème de tournées de véhicules (VRP) est un classique, et sa variante avec capacités (CVRP) est celle que l'on rencontre le plus souvent en pratique.
 
-Le CVRP consiste à trouver les meilleurs itinéraires pour une flotte de véhicules qui doivent livrer des clients à partir d'un dépôt central. Chaque véhicule a une capacité maximale qu'il ne faut pas dépasser. C'est un problème NP-difficile, ce qui veut dire qu'il n'existe pas d'algorithme capable de trouver la solution optimale en temps raisonnable dès que le nombre de clients augmente.
+Le CVRP consiste à trouver les meilleurs itinéraires pour une flotte de véhicules qui doivent livrer des clients à partir d'un dépôt central. Chaque véhicule possède une capacité maximale à ne pas dépasser. Il s'agit d'un problème NP-difficile, ce qui signifie qu'il n'existe pas d'algorithme capable de trouver la solution optimale en temps raisonnable dès que le nombre de clients augmente.
 
-Pour résoudre ce type de problème, on utilise souvent des métaheuristiques. Ces algorithmes ne garantissent pas de trouver l'optimum, mais ils donnent de bonnes solutions en un temps acceptable. Le souci, c'est que leurs performances dépendent beaucoup de leurs paramètres, et les régler correctement est souvent un travail fastidieux qui se fait par essais-erreurs.
+Pour résoudre ce type de problème, on utilise souvent des métaheuristiques. Ces algorithmes ne garantissent pas de trouver l'optimum, mais ils fournissent de bonnes solutions en un temps acceptable. Cependant, leurs performances dépendent fortement de leurs paramètres, et les régler correctement est souvent un travail fastidieux qui se fait par essais-erreurs.
 
-C'est là que le machine learning entre en jeu. L'idée qu'on explore dans ce projet, c'est d'utiliser un algorithme d'apprentissage par renforcement (le Q-Learning) pour que l'algorithme apprenne lui-même à ajuster ses paramètres au fil de la résolution. Au lieu de chercher manuellement les ``bons'' paramètres, on laisse l'algorithme s'adapter dynamiquement.
+C'est là que le machine learning entre en jeu. L'idée que nous explorons dans ce projet est d'utiliser un algorithme d'apprentissage par renforcement (le Q-Learning) pour que l'algorithme apprenne lui-même à ajuster ses paramètres au fil de la résolution. Au lieu de chercher manuellement les ``bons'' paramètres, nous laissons l'algorithme s'adapter dynamiquement.
 
-Dans ce rapport, on commence par présenter le CVRP et sa modélisation. Ensuite, on décrit notre implémentation de l'ACO classique, puis l'intégration du Q-Learning. Enfin, on présente nos résultats expérimentaux et on discute de ce qui marche et de ce qui marche moins bien.
+Dans ce rapport, nous commençons par présenter le CVRP et sa modélisation. Ensuite, nous décrivons notre implémentation de l'ACO classique, puis l'intégration du Q-Learning. Enfin, nous présentons nos résultats expérimentaux et discutons de ce qui fonctionne et de ce qui fonctionne moins bien.
 
 % =====================================================
 \section{Modélisation du problème}
@@ -85,16 +85,16 @@ Dans ce rapport, on commence par présenter le CVRP et sa modélisation. Ensuite
 Le CVRP (Capacitated Vehicle Routing Problem) se définit comme suit :
 
 \begin{itemize}
-    \item On a un \textbf{dépôt central} d'où partent et reviennent tous les véhicules.
-    \item On a $n$ \textbf{clients}, chacun situé à une position $(x_i, y_i)$ et ayant une demande $d_i$ à satisfaire.
-    \item On dispose d'une flotte de véhicules identiques, chacun avec une \textbf{capacité maximale} $Q$.
+    \item Un \textbf{dépôt central} d'où partent et reviennent tous les véhicules.
+    \item $n$ \textbf{clients}, chacun situé à une position $(x_i, y_i)$ et ayant une demande $d_i$ à satisfaire.
+    \item Une flotte de véhicules identiques, chacun avec une \textbf{capacité maximale} $Q$.
     \item Chaque client doit être visité \textbf{exactement une fois} par un seul véhicule.
     \item La charge totale d'un véhicule sur sa tournée ne doit pas dépasser $Q$.
 \end{itemize}
 
 \subsection{Formulation mathématique}
 
-On modélise le problème sur un graphe complet $G = (V, E)$ où $V = \{0, 1, \ldots, n\}$ ($0$ étant le dépôt) et $E$ l'ensemble des arêtes. La distance entre deux n\oe uds $i$ et $j$ est la distance euclidienne :
+Nous modélisons le problème sur un graphe complet $G = (V, E)$ où $V = \{0, 1, \ldots, n\}$ ($0$ étant le dépôt) et $E$ l'ensemble des arêtes. La distance entre deux n\oe uds $i$ et $j$ est la distance euclidienne :
 
 \begin{equation}
     d_{ij} = \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2}
@@ -115,9 +115,9 @@ sous les contraintes :
 
 \subsection{Difficulté et intérêt}
 
-Le CVRP est NP-difficile. Concrètement, pour $n$ clients, le nombre de solutions possibles explose de façon factorielle. Même avec 50 clients, on ne peut pas énumérer toutes les solutions. C'est ce qui rend les métaheuristiques intéressantes : elles permettent d'explorer intelligemment cet espace gigantesque.
+Le CVRP est NP-difficile. Concrètement, pour $n$ clients, le nombre de solutions possibles explose de façon factorielle. Même avec 50 clients, il est impossible d'énumérer toutes les solutions. C'est ce qui rend les métaheuristiques intéressantes : elles permettent d'explorer intelligemment cet espace gigantesque.
 
-Le CVRP a aussi un intérêt pratique évident. C'est exactement le problème que rencontrent les entreprises de livraison : comment organiser les tournées pour minimiser les coûts tout en respectant la capacité des camions ? Des entreprises comme Amazon ou UPS investissent des millions dans la résolution de ce type de problème.
+Le CVRP présente aussi un intérêt pratique évident. Il correspond exactement au problème que rencontrent les entreprises de livraison : comment organiser les tournées pour minimiser les coûts tout en respectant la capacité des camions ? Des entreprises comme Amazon ou UPS investissent des millions dans la résolution de ce type de problème.
 
 % =====================================================
 \section{Métaheuristique : Colonies de fourmis (ACO)}
@@ -186,7 +186,7 @@ Itérations max & 150 & Critère d'arrêt \\
 \end{tabular}
 \end{table}
 
-On a choisi $\beta > \alpha$ pour que l'heuristique de distance ait plus d'influence que les phéromones au début, quand les phéromones ne contiennent pas encore beaucoup d'information. Le taux d'évaporation de 0.1 est un compromis classique entre exploration et exploitation.
+Nous avons choisi $\beta > \alpha$ pour que l'heuristique de distance ait plus d'influence que les phéromones au début, lorsque celles-ci ne contiennent pas encore beaucoup d'information. Le taux d'évaporation $\rho = 0.1$ signifie que 10\% des phéromones disparaissent à chaque itération : une valeur trop faible (ex. 0.01) figerait la recherche sur les premiers chemins trouvés, tandis qu'une valeur trop forte (ex. 0.5) effacerait l'information trop vite pour que les bons chemins se renforcent. La valeur 0.1 offre un équilibre que nous avons vérifié expérimentalement lors de nos tests préliminaires.
 
 \subsection{Pseudocode}
 
@@ -215,9 +215,19 @@ On a choisi $\beta > \alpha$ pour que l'heuristique de distance ait plus d'influ
 
 \subsection{Pourquoi le Q-Learning ?}
 
-On a choisi le Q-Learning pour plusieurs raisons. D'abord, c'est un algorithme d'apprentissage par renforcement qui est relativement simple à comprendre et à implémenter. Ensuite, notre problème d'ajustement de paramètres se formule naturellement comme un problème de décision séquentielle : à chaque itération, on observe l'état de la recherche et on décide quelle stratégie adopter.
+Combiner du Q-Learning avec une métaheuristique est une idée que nous avions dès le départ du projet. En faisant nos recherches, nous avons trouvé le survey de Yang et al. (\textit{Advancements in Q-learning meta-heuristic optimization algorithms: A survey}, WIREs Data Mining and Knowledge Discovery, 2024 --- \url{https://wires.onlinelibrary.wiley.com/doi/full/10.1002/widm.1548}) qui recense une vingtaine d'années de travaux sur le sujet. Ce survey nous a servi de base pour comprendre comment structurer notre approche. On y retrouve les éléments clés que nous avons repris et adaptés à notre contexte :
 
-On aurait pu utiliser d'autres approches (SARSA, réseaux de neurones, etc.), mais le Q-Learning tabulaire a l'avantage d'être interprétable : on peut regarder la table Q et comprendre ce que l'agent a appris. Avec un réseau de neurones, ça aurait été plus opaque, et vu que notre espace d'états est petit (27 états), le tabulaire est suffisant.
+\begin{itemize}
+    \item \textbf{Adaptation de paramètres} (section 5.6 du survey) : le Q-Learning est utilisé pour ajuster dynamiquement les paramètres d'un algorithme évolutionnaire pendant la résolution, par exemple en sélectionnant parmi des combinaisons de paramètres prédéfinies. C'est exactement ce que nous faisons avec nos 6 stratégies.
+    \item \textbf{Conception des états} (section 6.1) : les états sont définis à partir de la performance de la population et de la détection de stagnation. Nous avons repris cette idée en caractérisant l'état par le taux d'amélioration, la diversité et la phase de recherche.
+    \item \textbf{Conception des récompenses} (section 6.2) : les récompenses sont basées sur la différence de fitness entre deux générations, avec des pénalités en cas de stagnation. Notre fonction de récompense suit ce même principe.
+    \item \textbf{Sélection d'opérateurs et recherche locale} (sections 5.4 et 5.4.3) : le Q-Learning peut décider quand déclencher une recherche locale plutôt que de l'appliquer systématiquement. C'est ce que nous faisons avec notre stratégie \texttt{local\_search}.
+    \item \textbf{Politique $\varepsilon$-greedy} (section 5.4.1) : le survey mentionne l'utilisation du mécanisme $\varepsilon$-greedy pour équilibrer exploration et exploitation dans la sélection d'actions, ce que nous appliquons avec un $\varepsilon$ décroissant.
+\end{itemize}
+
+Nous avons choisi le Q-Learning pour plusieurs raisons. D'abord, il s'agit d'un algorithme d'apprentissage par renforcement relativement simple à comprendre et à implémenter. Ensuite, notre problème d'ajustement de paramètres se formule naturellement comme un problème de décision séquentielle : à chaque itération, on observe l'état de la recherche et on décide quelle stratégie adopter.
+
+Nous aurions pu utiliser d'autres approches (SARSA, réseaux de neurones, etc.), mais le Q-Learning tabulaire a l'avantage d'être interprétable : on peut examiner la table Q et comprendre ce que l'agent a appris. Avec un réseau de neurones, l'interprétation aurait été plus difficile, et étant donné que notre espace d'états est petit (27 états), l'approche tabulaire est suffisante.
 
 Par rapport à une simple grille de recherche de paramètres (grid search), le Q-Learning a l'avantage d'être \textbf{adaptatif} : il peut changer de stratégie au cours de la résolution, par exemple explorer au début puis intensifier vers la fin.
 
@@ -225,7 +235,7 @@ Par rapport à une simple grille de recherche de paramètres (grid search), le Q
 
 \subsubsection{Espace d'états (27 états)}
 
-L'état de la recherche est caractérisé par trois dimensions qu'on discrétise chacune en 3 niveaux :
+L'état de la recherche est caractérisé par trois dimensions, que nous discrétisons chacune en 3 niveaux :
 
 \begin{itemize}
     \item \textbf{Taux d'amélioration} : mesure si la recherche progresse ou stagne.
@@ -242,11 +252,11 @@ L'état de la recherche est caractérisé par trois dimensions qu'on discrétise
     \end{itemize}
 \end{itemize}
 
-Ce qui donne $3 \times 3 \times 3 = 27$ états possibles. On a choisi ces features parce qu'elles capturent bien les aspects importants : est-ce que l'algorithme progresse, est-ce qu'il explore assez, et où en est-on dans la résolution.
+Ce qui donne $3 \times 3 \times 3 = 27$ états possibles. Nous avons retenu ces caractéristiques car elles capturent les aspects essentiels de la recherche : l'algorithme progresse-t-il, explore-t-il suffisamment, et à quelle phase de la résolution se trouve-t-on.
 
 \subsubsection{Espace d'actions (6 stratégies)}
 
-Plutôt que de faire varier les paramètres un par un (augmenter $\alpha$ de 0.1, etc.), on a défini 6 \textbf{stratégies} qui correspondent à des profils de paramètres cohérents :
+Plutôt que de faire varier les paramètres un par un (augmenter $\alpha$ de 0.1, diminuer $\rho$ de 0.05, etc.), nous avons défini 6 \textbf{stratégies} qui correspondent à des profils de paramètres cohérents. Ce choix se justifie par le fait que les paramètres $\alpha$, $\beta$ et $\rho$ sont interdépendants : augmenter $\alpha$ sans ajuster $\rho$ en conséquence produit un comportement incohérent. De plus, des ajustements incrémentaux nécessiteraient un nombre d'actions bien plus important, ce qui ralentirait la convergence du Q-Learning dans notre espace limité de 150 itérations.
 
 \begin{table}[H]
 \centering
@@ -266,7 +276,20 @@ Plutôt que de faire varier les paramètres un par un (augmenter $\alpha$ de 0.1
 \end{tabular}
 \end{table}
 
-L'idée derrière ces stratégies est intuitive. Quand la recherche stagne et que les solutions convergent trop, il vaut mieux diversifier ou explorer. Quand on est dans une bonne zone de l'espace de recherche, on veut intensifier. Et quand les solutions sont de bonne qualité, le 2-opt peut les améliorer localement.
+Les valeurs numériques de chaque profil découlent directement de la logique de la formule de probabilité $p_{ij} \propto \tau_{ij}^\alpha \cdot \eta_{ij}^\beta$ :
+
+\begin{itemize}
+    \item \textbf{Exploitation} ($\alpha=2.0$, $\beta=2.5$, $\rho=0.05$) : un $\alpha$ élevé amplifie l'écart entre les arcs très phéromonés et les autres, ce qui force les fourmis à suivre les chemins déjà établis. Le $\rho$ faible conserve ces phéromones plus longtemps.
+    \item \textbf{Exploration} ($\alpha=0.5$, $\beta=4.0$, $\rho=0.20$) : un $\alpha$ faible réduit l'influence des phéromones, donc les fourmis ne sont plus attirées par les chemins connus. Le $\beta$ élevé les guide quand même vers les clients proches (pour éviter des solutions absurdes), et le $\rho$ élevé efface rapidement les anciennes traces.
+    \item \textbf{Balanced} ($\alpha=1.0$, $\beta=3.0$, $\rho=0.10$) : ce sont les paramètres par défaut de notre ACO, un équilibre entre phéromones et heuristique.
+    \item \textbf{Intensify} ($\alpha=2.5$, $\beta=2.0$, $\rho=0.02$) : version plus agressive que \texttt{exploitation}. Le $\rho$ très faible (2\% d'évaporation) conserve les phéromones au maximum pour renforcer les meilleurs chemins trouvés.
+    \item \textbf{Diversify} ($\alpha=0.3$, $\beta=5.0$, $\rho=0.30$) : version plus agressive que \texttt{exploration}. Le $\rho$ à 0.30 efface 30\% des phéromones par itération, ce qui ``remet à zéro'' la mémoire collective et force la découverte de nouvelles zones.
+    \item \textbf{Local\_search} ($\alpha=1.0$, $\beta=3.0$, $\rho=0.10$) : paramètres équilibrés, mais déclenche en plus le 2-opt (voir section suivante).
+\end{itemize}
+
+Les plages de valeurs ($\alpha \in [0.3, 2.5]$, $\beta \in [2.0, 5.0]$, $\rho \in [0.02, 0.30]$) ont été déterminées par des tests préliminaires : en dehors de ces bornes, l'algorithme produit soit des solutions de mauvaise qualité ($\alpha > 3$ fige la recherche), soit une convergence trop lente ($\rho > 0.5$ empêche tout apprentissage collectif).
+
+L'idée derrière ces stratégies est intuitive. Lorsque la recherche stagne et que les solutions convergent trop, il vaut mieux diversifier ou explorer. Lorsque l'on se trouve dans une bonne zone de l'espace de recherche, on souhaite intensifier. Et lorsque les solutions sont de bonne qualité, le 2-opt peut les améliorer localement.
 
 La stratégie \texttt{local\_search} est particulière : en plus de fixer des paramètres équilibrés, elle déclenche un opérateur de recherche locale 2-opt sur chaque solution construite par les fourmis.
 
@@ -282,7 +305,7 @@ La récompense est calculée à chaque itération pour évaluer si la stratégie
     \end{cases}
 \end{equation}
 
-On a mis une pénalité faible pour la stagnation (-0.05) plutôt qu'une grosse pénalité, parce que stagner n'est pas forcément catastrophique : parfois l'algorithme est déjà proche de l'optimum. La récompense positive est proportionnelle à l'amélioration pour encourager les grosses améliorations.
+Nous avons choisi une pénalité faible pour la stagnation (-0.05) plutôt qu'une forte pénalité, car stagner n'est pas nécessairement problématique : l'algorithme peut déjà être proche de l'optimum. La récompense positive est proportionnelle à l'amélioration afin d'encourager les améliorations significatives.
 
 \subsubsection{Mise à jour Q-Learning}
 
@@ -298,13 +321,13 @@ La politique de sélection est $\varepsilon$-greedy : avec probabilité $\vareps
 
 \subsection{Phase de warm-up}
 
-Un détail important dans notre implémentation : on ne laisse pas le Q-Learning intervenir dès le début. Pendant les 10 premières itérations (environ 7\% du total), l'ACO tourne avec ses paramètres par défaut. Ça permet d'établir une base de phéromones raisonnable avant de commencer à modifier les paramètres. Sans ce warm-up, le Q-Learning peut prendre de mauvaises décisions parce qu'il n'a pas assez d'information sur l'état de la recherche.
+Un détail important de notre implémentation : nous ne laissons pas le Q-Learning intervenir dès le début. Pendant les 10\% premières itérations (soit 15 itérations sur 150), l'ACO tourne avec ses paramètres par défaut. Cela permet d'établir une base de phéromones raisonnable avant de commencer à modifier les paramètres. Sans cette phase de warm-up, le Q-Learning risque de prendre de mauvaises décisions faute d'information suffisante sur l'état de la recherche.
 
 \subsection{Recherche locale 2-opt}
 
-Le 2-opt est un opérateur classique d'amélioration locale. Il consiste à prendre deux arcs dans une route et à les inverser pour voir si ça réduit la distance. Concrètement, on prend un segment de la route et on le retourne. On répète ça tant qu'on trouve des améliorations.
+Le 2-opt est un opérateur classique d'amélioration locale. Il consiste à sélectionner deux arcs dans une route et à inverser le segment entre eux pour vérifier si cela réduit la distance totale. Ce processus est répété tant que des améliorations sont trouvées.
 
-On l'applique uniquement quand le Q-Learning choisit la stratégie \texttt{local\_search}. C'est volontaire : le 2-opt est coûteux en temps de calcul, donc on ne veut pas l'appliquer à chaque itération. C'est au Q-Learning de décider quand c'est le bon moment.
+Nous l'appliquons uniquement lorsque le Q-Learning choisit la stratégie \texttt{local\_search}. Ce choix est délibéré : le 2-opt est coûteux en temps de calcul, et nous ne souhaitons donc pas l'appliquer à chaque itération. C'est au Q-Learning de décider quand son application est pertinente.
 
 % =====================================================
 \section{Implémentation}
@@ -312,7 +335,7 @@ On l'applique uniquement quand le Q-Learning choisit la stratégie \texttt{local
 
 \subsection{Architecture du code}
 
-Le projet est implémenté en Python. On a organisé le code en modules séparés pour garder les choses claires :
+Le projet est implémenté en Python. Nous avons organisé le code en modules séparés pour maintenir une bonne lisibilité :
 
 \begin{itemize}
     \item \texttt{src/cvrp.py} : modélisation du problème (instances, solutions, distances)
@@ -324,7 +347,7 @@ Le projet est implémenté en Python. On a organisé le code en modules séparé
     \item \texttt{app.py} : interface web Flask pour la démonstration
 \end{itemize}
 
-On a utilisé NumPy pour les calculs sur la table Q et Flask pour l'interface de démonstration. L'interface web permet de configurer les paramètres, lancer une résolution, et voir les routes sur une carte avec les courbes de convergence.
+Nous avons utilisé NumPy pour les calculs sur la table Q et Flask pour l'interface de démonstration. L'interface web permet de configurer les paramètres, de lancer une résolution, et de visualiser les routes sur une carte avec les courbes de convergence.
 
 \subsection{Reproductibilité}
 
@@ -336,9 +359,11 @@ Toutes les expériences utilisent des graines aléatoires (seeds) fixes, ce qui 
 
 \subsection{Protocole expérimental}
 
-On a testé notre approche sur 7 instances générées aléatoirement avec des tailles croissantes (10 à 50 clients). Pour chaque instance, on fait 5 exécutions avec des seeds différents pour avoir des résultats statistiques. On compare l'ACO seul et l'ACO hybride (avec Q-Learning) sur les mêmes instances avec les mêmes seeds.
+Nous avons testé notre approche sur 7 instances générées aléatoirement avec des tailles croissantes (10 à 50 clients). Pour chaque instance, nous effectuons 5 exécutions avec des graines aléatoires (seeds) différentes afin d'obtenir des résultats statistiques. Nous comparons l'ACO seul et l'ACO hybride (avec Q-Learning) sur les mêmes instances avec les mêmes seeds.
 
-Les expériences tournent avec 20 fourmis et 150 itérations. C'est un compromis entre qualité des résultats et temps de calcul raisonnable.
+Les expériences sont exécutées avec 20 fourmis et 150 itérations, un compromis entre qualité des résultats et temps de calcul raisonnable.
+
+\textit{Note :} les instances utilisées sont générées aléatoirement et ne proviennent pas de benchmarks standard (tels que VRPLIB). Par ailleurs, avec seulement 5 exécutions par instance, nous ne réalisons pas de test statistique formel (test de Student, etc.). Les améliorations rapportées sont donc indicatives et mériteraient une validation plus rigoureuse.
 
 \subsection{Résultats}
 
@@ -367,19 +392,19 @@ large\_50  & 50 & 921.1 & $933.0 \pm 8.7$ & 889.5 & $920.2 \pm 25.7$ & +1.37\% \
 
 \subsubsection{Qualité des solutions}
 
-On observe plusieurs choses intéressantes dans ces résultats :
+On observe plusieurs phénomènes intéressants dans ces résultats (la colonne ``Amél.'' correspond à l'amélioration relative du coût moyen) :
 
 \begin{itemize}
-    \item Sur les \textbf{petites instances} (10--15 clients), les deux approches donnent des résultats quasiment identiques. C'est logique : l'espace de recherche est petit, et l'ACO classique trouve déjà de très bonnes solutions tout seul. Le Q-Learning n'a pas grand-chose à apporter.
+    \item Sur les \textbf{petites instances} (10--15 clients), les deux approches donnent des résultats quasiment identiques. Cela est cohérent : l'espace de recherche est restreint, et l'ACO classique trouve déjà de très bonnes solutions. Le Q-Learning n'a pas de marge d'amélioration significative.
 
-    \item Sur les \textbf{instances moyennes} (20--30 clients), les résultats sont mitigés. Sur 20 clients, l'hybride est légèrement moins bon en moyenne ($-0.55\%$), mais sur 25 et 30 clients, il fait mieux ($+1.05\%$ et $+0.99\%$). Le résultat négatif sur 20 clients s'explique probablement par le fait que l'exploration du Q-Learning introduit de la variance sans apporter assez de bénéfice sur une instance de cette taille.
+    \item Sur les \textbf{instances moyennes} (20--30 clients), les résultats sont mitigés. Sur 20 clients, l'hybride est légèrement moins performant en moyenne ($-0.55\%$), mais sur 25 et 30 clients, il fait mieux ($+1.05\%$ et $+0.99\%$). Le résultat négatif sur 20 clients s'explique probablement par le fait que l'exploration du Q-Learning introduit de la variance sans apporter suffisamment de bénéfice sur une instance de cette taille.
 
-    \item Sur les \textbf{grandes instances} (40--50 clients), l'hybride montre clairement son avantage. Le meilleur résultat est sur 40 clients avec $+3.49\%$ d'amélioration. C'est cohérent avec l'intuition : plus l'espace de recherche est grand, plus l'ajustement dynamique des paramètres peut aider à explorer différentes zones.
+    \item Sur les \textbf{grandes instances} (40--50 clients), l'hybride montre clairement son avantage. Le meilleur résultat est obtenu sur 40 clients avec $+3.49\%$ d'amélioration. Cela est cohérent avec l'intuition : plus l'espace de recherche est vaste, plus l'ajustement dynamique des paramètres peut aider à explorer différentes zones.
 \end{itemize}
 
 \subsubsection{Stabilité}
 
-Un point intéressant : sur les instances moyennes (25 et 30 clients), l'écart-type de l'hybride est plus faible que celui de l'ACO seul ($3.6$ vs $10.2$ pour 25 clients). Ça suggère que le Q-Learning aide à stabiliser la recherche en choisissant des stratégies adaptées. Cependant, sur les grandes instances, l'écart-type augmente ($25.7$ vs $8.7$ pour 50 clients), ce qui indique que l'exploration du Q-Learning peut aussi introduire de la variabilité.
+Un point notable : sur les instances moyennes (25 et 30 clients), l'écart-type de l'hybride est plus faible que celui de l'ACO seul ($3.6$ vs $10.2$ pour 25 clients). Cela suggère que le Q-Learning aide à stabiliser la recherche en choisissant des stratégies adaptées. Cependant, sur les grandes instances, l'écart-type augmente ($25.7$ vs $8.7$ pour 50 clients), ce qui indique que l'exploration du Q-Learning peut également introduire de la variabilité.
 
 \subsubsection{Temps de calcul}
 
@@ -402,11 +427,11 @@ large\_50 & 2.27 s & 2.82 s & +24\% \\
 \end{tabular}
 \end{table}
 
-Le surcoût du Q-Learning est d'environ 25--29\%. Ce n'est pas négligeable, mais c'est raisonnable. Ce surcoût vient principalement du 2-opt qui est déclenché par la stratégie \texttt{local\_search}. Le Q-Learning lui-même (consultation de la table Q et mise à jour) est très rapide et ajoute un surcoût négligeable.
+Le surcoût du Q-Learning est d'environ 25--29\%. Ce n'est pas négligeable, mais cela reste raisonnable. Ce surcoût provient principalement du 2-opt, qui est déclenché par la stratégie \texttt{local\_search}. Le Q-Learning lui-même (consultation de la table Q et mise à jour) est très rapide et ajoute un surcoût négligeable.
 
 \subsection{Visualisation de la convergence}
 
-Sur la figure~\ref{fig:convergence_schema}, on illustre le comportement typique de la convergence. L'ACO classique converge rapidement vers un plateau et stagne. L'hybride, grâce aux changements de stratégie, arrive parfois à ``casser'' cette stagnation et trouver de meilleures solutions, surtout sur les grandes instances.
+La figure~\ref{fig:convergence} présente la convergence réelle des deux approches sur l'instance \texttt{large\_40} (40 clients, seed 100). On constate que l'ACO classique converge rapidement vers un plateau autour de l'itération 30 et stagne ensuite. L'hybride, grâce aux changements de stratégie pilotés par le Q-Learning, parvient à rompre cette stagnation à plusieurs reprises (notamment autour des itérations 55 et 75) et atteint un coût final sensiblement inférieur.
 
 \begin{figure}[H]
 \centering
@@ -418,19 +443,20 @@ Sur la figure~\ref{fig:convergence_schema}, on illustre le comportement typique 
     legend pos=north east,
     grid=major,
     grid style={gray!20},
+    xmin=0, xmax=150,
 ]
 \addplot[blue!70!black, thick, smooth] coordinates {
-    (0,1100) (10,950) (20,900) (30,875) (50,860) (70,858) (100,858) (130,858) (150,858)
+    (0,1113.32) (5,1061.04) (10,957.28) (15,957.28) (20,949.32) (25,949.32) (30,867.06) (35,867.06) (40,867.06) (45,867.06) (50,867.06) (55,867.06) (60,867.06) (65,867.06) (70,867.06) (75,867.06) (80,867.06) (85,867.06) (90,867.06) (95,867.06) (100,867.06) (105,867.06) (110,867.06) (115,867.06) (120,867.06) (125,867.06) (130,867.06) (135,867.06) (140,867.06) (145,867.06) (149,867.06)
 };
-\addlegendentry{ACO classique}
+\addlegendentry{ACO classique (867.06)}
 \addplot[green!60!black, thick, smooth, dashed] coordinates {
-    (0,1100) (10,955) (20,905) (30,870) (50,850) (70,840) (100,830) (130,828) (150,828)
+    (0,1113.32) (5,974.95) (10,974.95) (15,910.49) (20,910.49) (25,902.44) (30,886.70) (35,886.70) (40,886.70) (45,886.70) (50,886.70) (55,868.31) (60,868.31) (65,868.31) (70,868.31) (75,822.73) (80,822.73) (85,822.73) (90,822.73) (95,822.73) (100,822.73) (105,822.73) (110,822.73) (115,822.73) (120,816.95) (125,816.95) (130,816.95) (135,816.95) (140,816.95) (145,816.95) (149,816.95)
 };
-\addlegendentry{ACO + Q-Learning}
+\addlegendentry{ACO + Q-Learning (816.95)}
 \end{axis}
 \end{tikzpicture}
-\caption{Schéma illustratif de la convergence (instance large\_40)}
-\label{fig:convergence_schema}
+\caption{Convergence réelle sur l'instance \texttt{large\_40} (seed 100)}
+\label{fig:convergence}
 \end{figure}
 
 % =====================================================
@@ -439,44 +465,44 @@ Sur la figure~\ref{fig:convergence_schema}, on illustre le comportement typique 
 
 \subsection{Apports du Q-Learning}
 
-D'après nos expériences, le Q-Learning apporte plusieurs choses :
+D'après nos expériences, le Q-Learning apporte plusieurs contributions :
 
 \begin{enumerate}
-    \item \textbf{Adaptation automatique des paramètres} : c'est le point principal. Plutôt que de chercher manuellement les bons paramètres, le Q-Learning apprend à adapter la stratégie. Ça marche surtout quand l'espace de recherche est assez grand pour que le choix de stratégie fasse une vraie différence.
+    \item \textbf{Adaptation automatique des paramètres} : c'est le point principal. Plutôt que de chercher manuellement les bons paramètres, le Q-Learning apprend à adapter la stratégie. Cela fonctionne surtout lorsque l'espace de recherche est suffisamment grand pour que le choix de stratégie fasse une réelle différence.
 
-    \item \textbf{Meilleure exploration sur les grandes instances} : sur 40 et 50 clients, l'hybride trouve de meilleures solutions. Le Q-Learning arrive à alterner entre exploration et exploitation de façon pertinente.
+    \item \textbf{Meilleure exploration sur les grandes instances} : sur 40 et 50 clients, l'hybride trouve de meilleures solutions. Le Q-Learning parvient à alterner entre exploration et exploitation de façon pertinente.
 
-    \item \textbf{Recherche locale ciblée} : le fait que le Q-Learning puisse déclencher le 2-opt au bon moment est utile. Appliquer le 2-opt systématiquement serait trop coûteux, mais le faire quand c'est pertinent apporte un gain.
+    \item \textbf{Recherche locale ciblée} : le fait que le Q-Learning puisse déclencher le 2-opt au bon moment est un atout. Appliquer le 2-opt systématiquement serait trop coûteux, mais le faire lorsque c'est pertinent apporte un gain appréciable.
 \end{enumerate}
 
 \subsection{Limites}
 
-Notre approche a aussi des limites qu'il faut reconnaître :
+Notre approche présente également des limites qu'il convient de reconnaître :
 
 \begin{enumerate}
-    \item \textbf{Pas d'amélioration sur les petites instances} : quand le problème est assez simple pour que l'ACO classique trouve de bonnes solutions seul, le Q-Learning n'apporte rien et peut même légèrement dégrader les performances (cas des 20 clients).
+    \item \textbf{Pas d'amélioration sur les petites instances} : lorsque le problème est suffisamment simple pour que l'ACO classique trouve de bonnes solutions seul, le Q-Learning n'apporte rien et peut même légèrement dégrader les performances (cas des 20 clients).
 
-    \item \textbf{Pas de transfert d'apprentissage} : notre agent Q-Learning apprend pendant la résolution d'une instance et repart de zéro pour l'instance suivante. Il n'y a pas de mémoire d'une instance à l'autre, ce qui veut dire qu'il doit réapprendre à chaque fois.
+    \item \textbf{Pas de transfert d'apprentissage} : notre agent Q-Learning apprend pendant la résolution d'une instance et repart de zéro pour l'instance suivante. Il n'y a pas de mémoire d'une instance à l'autre, ce qui signifie qu'il doit réapprendre à chaque fois.
 
-    \item \textbf{Discrétisation grossière} : notre espace d'états a seulement 27 états. C'est assez grossier et on perd forcément de l'information. Mais avec plus d'états, il faudrait plus d'itérations pour que le Q-Learning apprenne, donc c'est un compromis.
+    \item \textbf{Discrétisation grossière} : notre espace d'états ne comporte que 27 états. C'est assez grossier et on perd nécessairement de l'information. De plus, la métrique de diversité (coefficient de variation des coûts) ne capture que la diversité en termes de coût et non la diversité structurelle des routes. Cependant, avec davantage d'états, il faudrait plus d'itérations pour que le Q-Learning converge, ce qui constitue un compromis.
 
-    \item \textbf{Surcoût en temps} : le surcoût de 25\% n'est pas critique, mais il existe. Sur des instances très grandes ou des contraintes de temps serrées, ça pourrait poser problème.
+    \item \textbf{Surcoût en temps} : le surcoût de 25\% n'est pas critique, mais il existe. Sur des instances très grandes ou sous des contraintes de temps serrées, cela pourrait poser problème.
 
-    \item \textbf{Instances limitées} : on n'a testé que sur des instances aléatoires jusqu'à 50 clients. Il faudrait tester sur des benchmarks standard (type VRPLIB) et sur de plus grandes instances pour vraiment valider l'approche.
+    \item \textbf{Instances limitées et validation statistique} : nous n'avons testé que sur des instances aléatoires jusqu'à 50 clients, sans benchmark standard (type VRPLIB). De plus, avec seulement 5 exécutions par instance et sans test statistique formel, les améliorations observées restent indicatives.
 
-    \item \textbf{Variance accrue sur les grandes instances} : l'écart-type de l'hybride est plus élevé sur 50 clients, ce qui veut dire que les résultats sont moins prévisibles.
+    \item \textbf{Variance accrue sur les grandes instances} : l'écart-type de l'hybride est plus élevé sur 50 clients, ce qui signifie que les résultats sont moins prévisibles.
 \end{enumerate}
 
 \subsection{Pistes d'amélioration}
 
-Plusieurs pistes pourraient améliorer notre approche :
+Plusieurs pistes pourraient permettre d'améliorer notre approche :
 
 \begin{itemize}
-    \item \textbf{Transfert d'apprentissage} : pré-entraîner la table Q sur un ensemble d'instances pour que l'agent ait déjà une bonne politique de départ quand il attaque une nouvelle instance. Ça pourrait réduire la phase d'exploration initiale.
+    \item \textbf{Transfert d'apprentissage} : pré-entraîner la table Q sur un ensemble d'instances pour que l'agent dispose d'une bonne politique de départ lorsqu'il aborde une nouvelle instance. Cela pourrait réduire la phase d'exploration initiale.
 
     \item \textbf{Plus d'actions} : ajouter d'autres opérateurs (3-opt, relocate, swap entre routes) comme actions du Q-Learning pour enrichir le répertoire de stratégies.
 
-    \item \textbf{Deep Q-Learning} : remplacer la table Q par un réseau de neurones pour gérer un espace d'états plus fin (features continues au lieu de discrétiser). Ça permettrait d'être plus précis dans la caractérisation de l'état de la recherche.
+    \item \textbf{Deep Q-Learning} : remplacer la table Q par un réseau de neurones pour gérer un espace d'états plus fin (features continues au lieu de discrétiser). Cela permettrait d'être plus précis dans la caractérisation de l'état de la recherche.
 
     \item \textbf{Multi-agent} : utiliser plusieurs agents Q-Learning, chacun gérant un sous-ensemble de paramètres, pour une granularité plus fine.
 
@@ -487,54 +513,13 @@ Plusieurs pistes pourraient améliorer notre approche :
 \section{Conclusion}
 % =====================================================
 
-Dans ce projet, on a implémenté un solveur hybride pour le CVRP qui combine une métaheuristique classique (ACO) avec un algorithme d'apprentissage par renforcement (Q-Learning). L'idée était de voir si le machine learning pouvait améliorer les performances de l'ACO en ajustant automatiquement ses paramètres.
+Dans ce projet, nous avons implémenté un solveur hybride pour le CVRP qui combine une métaheuristique classique (ACO) avec un algorithme d'apprentissage par renforcement (Q-Learning). L'objectif était de déterminer si le machine learning pouvait améliorer les performances de l'ACO en ajustant automatiquement ses paramètres.
 
-Nos résultats montrent que l'approche hybride apporte un gain réel sur les instances de taille suffisante (25+ clients), avec des améliorations allant jusqu'à 3.5\%. Le Q-Learning arrive à identifier des stratégies pertinentes selon l'état de la recherche, notamment en alternant entre exploration et exploitation. L'intégration de la recherche locale 2-opt comme une action pilotée par le Q-Learning est aussi un apport intéressant.
+Nos résultats montrent que l'approche hybride apporte un gain sur les instances de taille suffisante (25+ clients), avec des améliorations allant jusqu'à 3.5\% sur le coût moyen. Le Q-Learning parvient à identifier des stratégies pertinentes selon l'état de la recherche, notamment en alternant entre exploration et exploitation. L'intégration de la recherche locale 2-opt comme action pilotée par le Q-Learning constitue également un apport intéressant.
 
-En revanche, sur les petites instances, le Q-Learning n'apporte pas de gain significatif. C'est un résultat attendu : quand le problème est simple, il vaut mieux garder une approche simple. L'hybride montre son intérêt quand l'espace de recherche est assez complexe pour qu'une stratégie adaptative fasse la différence.
+En revanche, sur les petites instances, le Q-Learning n'apporte pas de gain significatif. Il s'agit d'un résultat attendu : lorsque le problème est simple, il est préférable de conserver une approche simple. L'hybride montre son intérêt lorsque l'espace de recherche est suffisamment complexe pour qu'une stratégie adaptative fasse la différence.
 
-Ce projet nous a permis de voir concrètement comment le machine learning peut interagir avec une métaheuristique. C'est un domaine de recherche actif, et on pense qu'avec des techniques plus avancées (deep RL, transfert d'apprentissage), on pourrait aller plus loin. Mais même avec notre approche relativement simple, les résultats sont encourageants.
+Ce projet nous a permis d'observer concrètement comment le machine learning peut interagir avec une métaheuristique. Il s'agit d'un domaine de recherche actif, et nous pensons qu'avec des techniques plus avancées (deep RL, transfert d'apprentissage) et une validation sur des benchmarks standards, il serait possible d'aller plus loin. Même avec notre approche relativement simple, les résultats sont encourageants.
 
-% =====================================================
-% Références
-% =====================================================
-\begin{thebibliography}{9}
-
-\bibitem{dorigo1997}
-M. Dorigo et L.M. Gambardella,
-\textit{Ant colony system: a cooperative learning approach to the traveling salesman problem},
-IEEE Transactions on Evolutionary Computation, vol. 1, no. 1, pp. 53--66, 1997.
-
-\bibitem{watkins1992}
-C.J.C.H. Watkins et P. Dayan,
-\textit{Q-learning},
-Machine Learning, vol. 8, pp. 279--292, 1992.
-
-\bibitem{toth2002}
-P. Toth et D. Vigo,
-\textit{The Vehicle Routing Problem},
-SIAM Monographs on Discrete Mathematics and Applications, 2002.
-
-\bibitem{stutzle2000}
-T. Stützle et H.H. Hoos,
-\textit{MAX--MIN Ant System},
-Future Generation Computer Systems, vol. 16, no. 8, pp. 889--914, 2000.
-
-\bibitem{sutton2018}
-R.S. Sutton et A.G. Barto,
-\textit{Reinforcement Learning: An Introduction},
-MIT Press, 2e édition, 2018.
-
-\bibitem{skinderowicz2022}
-R. Skinderowicz,
-\textit{Improving Ant Colony Optimization efficiency for solving large TSP instances},
-Applied Soft Computing, vol. 120, 2022.
-
-\bibitem{bell2004}
-J.E. Bell et P.R. McMullen,
-\textit{Ant colony optimization techniques for the vehicle routing problem},
-Advanced Engineering Informatics, vol. 18, pp. 41--48, 2004.
-
-\end{thebibliography}
 
 \end{document}
