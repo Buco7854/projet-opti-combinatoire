@@ -186,7 +186,7 @@ Itérations max & 150 & Critère d'arrêt \\
 \end{tabular}
 \end{table}
 
-Nous avons choisi $\beta > \alpha$ pour que l'heuristique de distance ait plus d'influence que les phéromones au début, lorsque celles-ci ne contiennent pas encore beaucoup d'information. Le taux d'évaporation de 0.1 est un compromis classique entre exploration et exploitation, conforme aux recommandations classiques de l'ACO.
+Nous avons choisi $\beta > \alpha$ pour que l'heuristique de distance ait plus d'influence que les phéromones au début, lorsque celles-ci ne contiennent pas encore beaucoup d'information. Le taux d'évaporation $\rho = 0.1$ signifie que 10\% des phéromones disparaissent à chaque itération : une valeur trop faible (ex. 0.01) figerait la recherche sur les premiers chemins trouvés, tandis qu'une valeur trop forte (ex. 0.5) effacerait l'information trop vite pour que les bons chemins se renforcent. La valeur 0.1 offre un équilibre que nous avons vérifié expérimentalement lors de nos tests préliminaires.
 
 \subsection{Pseudocode}
 
@@ -266,7 +266,18 @@ Plutôt que de faire varier les paramètres un par un (augmenter $\alpha$ de 0.1
 \end{tabular}
 \end{table}
 
-Les valeurs numériques de chaque profil s'appuient sur les plages de paramètres classiquement recommandées pour l'ACO. Par exemple, pour la stratégie \texttt{exploitation}, un $\alpha$ élevé (2.0) et un $\rho$ faible (0.05) favorisent le suivi des phéromones établies, tandis que pour \texttt{diversify}, un $\alpha$ faible (0.3) combiné à un $\rho$ élevé (0.30) permet d'effacer rapidement les phéromones et de relancer l'exploration. Le paramètre $\beta$ est ajusté en conséquence : une valeur élevée (4.0--5.0) privilégie l'heuristique de proximité lorsque les phéromones sont peu fiables, tandis qu'une valeur plus faible (2.0--2.5) laisse davantage de place aux phéromones.
+Les valeurs numériques de chaque profil découlent directement de la logique de la formule de probabilité $p_{ij} \propto \tau_{ij}^\alpha \cdot \eta_{ij}^\beta$ :
+
+\begin{itemize}
+    \item \textbf{Exploitation} ($\alpha=2.0$, $\beta=2.5$, $\rho=0.05$) : un $\alpha$ élevé amplifie l'écart entre les arcs très phéromonés et les autres, ce qui force les fourmis à suivre les chemins déjà établis. Le $\rho$ faible conserve ces phéromones plus longtemps.
+    \item \textbf{Exploration} ($\alpha=0.5$, $\beta=4.0$, $\rho=0.20$) : un $\alpha$ faible réduit l'influence des phéromones, donc les fourmis ne sont plus attirées par les chemins connus. Le $\beta$ élevé les guide quand même vers les clients proches (pour éviter des solutions absurdes), et le $\rho$ élevé efface rapidement les anciennes traces.
+    \item \textbf{Balanced} ($\alpha=1.0$, $\beta=3.0$, $\rho=0.10$) : ce sont les paramètres par défaut de notre ACO, un équilibre entre phéromones et heuristique.
+    \item \textbf{Intensify} ($\alpha=2.5$, $\beta=2.0$, $\rho=0.02$) : version plus agressive que \texttt{exploitation}. Le $\rho$ très faible (2\% d'évaporation) conserve les phéromones au maximum pour renforcer les meilleurs chemins trouvés.
+    \item \textbf{Diversify} ($\alpha=0.3$, $\beta=5.0$, $\rho=0.30$) : version plus agressive que \texttt{exploration}. Le $\rho$ à 0.30 efface 30\% des phéromones par itération, ce qui ``remet à zéro'' la mémoire collective et force la découverte de nouvelles zones.
+    \item \textbf{Local\_search} ($\alpha=1.0$, $\beta=3.0$, $\rho=0.10$) : paramètres équilibrés, mais déclenche en plus le 2-opt (voir section suivante).
+\end{itemize}
+
+Les plages de valeurs ($\alpha \in [0.3, 2.5]$, $\beta \in [2.0, 5.0]$, $\rho \in [0.02, 0.30]$) ont été déterminées par des tests préliminaires : en dehors de ces bornes, l'algorithme produit soit des solutions de mauvaise qualité ($\alpha > 3$ fige la recherche), soit une convergence trop lente ($\rho > 0.5$ empêche tout apprentissage collectif).
 
 L'idée derrière ces stratégies est intuitive. Lorsque la recherche stagne et que les solutions convergent trop, il vaut mieux diversifier ou explorer. Lorsque l'on se trouve dans une bonne zone de l'espace de recherche, on souhaite intensifier. Et lorsque les solutions sont de bonne qualité, le 2-opt peut les améliorer localement.
 
