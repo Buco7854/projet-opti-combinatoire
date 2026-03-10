@@ -215,6 +215,8 @@ Nous avons choisi $\beta > \alpha$ pour que l'heuristique de distance ait plus d
 
 \subsection{Pourquoi le Q-Learning ?}
 
+L'idée d'utiliser l'apprentissage par renforcement pour piloter une métaheuristique n'est pas nouvelle. Le survey de Yang et al. (\textit{Advancements in Q-learning meta-heuristic optimization algorithms: A survey}, WIREs Data Mining and Knowledge Discovery, 2024 --- disponible sur \url{https://wires.onlinelibrary.wiley.com/doi/full/10.1002/widm.1548}) recense 20 ans de travaux combinant Q-Learning et métaheuristiques, notamment pour l'adaptation de paramètres et la sélection d'opérateurs. C'est ce courant de recherche qui a inspiré notre approche.
+
 Nous avons choisi le Q-Learning pour plusieurs raisons. D'abord, il s'agit d'un algorithme d'apprentissage par renforcement relativement simple à comprendre et à implémenter. Ensuite, notre problème d'ajustement de paramètres se formule naturellement comme un problème de décision séquentielle : à chaque itération, on observe l'état de la recherche et on décide quelle stratégie adopter.
 
 Nous aurions pu utiliser d'autres approches (SARSA, réseaux de neurones, etc.), mais le Q-Learning tabulaire a l'avantage d'être interprétable : on peut examiner la table Q et comprendre ce que l'agent a appris. Avec un réseau de neurones, l'interprétation aurait été plus difficile, et étant donné que notre espace d'états est petit (27 états), l'approche tabulaire est suffisante.
