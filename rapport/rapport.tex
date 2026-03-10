@@ -410,9 +410,7 @@ Le surcoût du Q-Learning est d'environ 25--29\%. Ce n'est pas négligeable, mai
 
 \subsection{Visualisation de la convergence}
 
-La figure~\ref{fig:convergence_schema} illustre de manière schématique le comportement typique de la convergence. L'ACO classique converge rapidement vers un plateau et stagne. L'hybride, grâce aux changements de stratégie, parvient parfois à rompre cette stagnation et à trouver de meilleures solutions, en particulier sur les grandes instances.
-
-\textit{Note :} cette figure est un schéma illustratif dont les valeurs sont approximatives. Une figure basée sur les données réelles des expériences serait préférable pour une analyse rigoureuse.
+La figure~\ref{fig:convergence} présente la convergence réelle des deux approches sur l'instance \texttt{large\_40} (40 clients, seed 100). On constate que l'ACO classique converge rapidement vers un plateau autour de l'itération 30 et stagne ensuite. L'hybride, grâce aux changements de stratégie pilotés par le Q-Learning, parvient à rompre cette stagnation à plusieurs reprises (notamment autour des itérations 55 et 75) et atteint un coût final sensiblement inférieur.
 
 \begin{figure}[H]
 \centering
@@ -424,19 +422,20 @@ La figure~\ref{fig:convergence_schema} illustre de manière schématique le comp
     legend pos=north east,
     grid=major,
     grid style={gray!20},
+    xmin=0, xmax=150,
 ]
 \addplot[blue!70!black, thick, smooth] coordinates {
-    (0,1100) (10,950) (20,900) (30,875) (50,860) (70,858) (100,858) (130,858) (150,858)
+    (0,1113.32) (5,1061.04) (10,957.28) (15,957.28) (20,949.32) (25,949.32) (30,867.06) (35,867.06) (40,867.06) (45,867.06) (50,867.06) (55,867.06) (60,867.06) (65,867.06) (70,867.06) (75,867.06) (80,867.06) (85,867.06) (90,867.06) (95,867.06) (100,867.06) (105,867.06) (110,867.06) (115,867.06) (120,867.06) (125,867.06) (130,867.06) (135,867.06) (140,867.06) (145,867.06) (149,867.06)
 };
-\addlegendentry{ACO classique}
+\addlegendentry{ACO classique (867.06)}
 \addplot[green!60!black, thick, smooth, dashed] coordinates {
-    (0,1100) (10,955) (20,905) (30,870) (50,850) (70,840) (100,830) (130,828) (150,828)
+    (0,1113.32) (5,974.95) (10,974.95) (15,910.49) (20,910.49) (25,902.44) (30,886.70) (35,886.70) (40,886.70) (45,886.70) (50,886.70) (55,868.31) (60,868.31) (65,868.31) (70,868.31) (75,822.73) (80,822.73) (85,822.73) (90,822.73) (95,822.73) (100,822.73) (105,822.73) (110,822.73) (115,822.73) (120,816.95) (125,816.95) (130,816.95) (135,816.95) (140,816.95) (145,816.95) (149,816.95)
 };
-\addlegendentry{ACO + Q-Learning}
+\addlegendentry{ACO + Q-Learning (816.95)}
 \end{axis}
 \end{tikzpicture}
-\caption{Schéma illustratif de la convergence (instance large\_40)}
-\label{fig:convergence_schema}
+\caption{Convergence réelle sur l'instance \texttt{large\_40} (seed 100)}
+\label{fig:convergence}
 \end{figure}
 
 % =====================================================
@@ -478,11 +477,11 @@ Notre approche présente également des limites qu'il convient de reconnaître :
 Plusieurs pistes pourraient permettre d'améliorer notre approche :
 
 \begin{itemize}
-    \item \textbf{Transfert d'apprentissage} : pré-entraîner la table Q sur un ensemble d'instances pour que l'agent ait déjà une bonne politique de départ quand il attaque une nouvelle instance. Ça pourrait réduire la phase d'exploration initiale.
+    \item \textbf{Transfert d'apprentissage} : pré-entraîner la table Q sur un ensemble d'instances pour que l'agent dispose d'une bonne politique de départ lorsqu'il aborde une nouvelle instance. Cela pourrait réduire la phase d'exploration initiale.
 
     \item \textbf{Plus d'actions} : ajouter d'autres opérateurs (3-opt, relocate, swap entre routes) comme actions du Q-Learning pour enrichir le répertoire de stratégies.
 
-    \item \textbf{Deep Q-Learning} : remplacer la table Q par un réseau de neurones pour gérer un espace d'états plus fin (features continues au lieu de discrétiser). Ça permettrait d'être plus précis dans la caractérisation de l'état de la recherche.
+    \item \textbf{Deep Q-Learning} : remplacer la table Q par un réseau de neurones pour gérer un espace d'états plus fin (features continues au lieu de discrétiser). Cela permettrait d'être plus précis dans la caractérisation de l'état de la recherche.
 
     \item \textbf{Multi-agent} : utiliser plusieurs agents Q-Learning, chacun gérant un sous-ensemble de paramètres, pour une granularité plus fine.
 
